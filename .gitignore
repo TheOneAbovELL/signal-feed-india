@@ -1,0 +1,26 @@
+@'
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+.tmp/
+.codex/
+
+.env
+.env.*
+!.env.example
+
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+.vscode/
+.idea/
+
+.DS_Store
+Thumbs.db
+desktop.ini
+'@ | Set-Content .gitignore

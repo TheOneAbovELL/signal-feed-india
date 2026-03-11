@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Signal Feed India</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <div class="shell">
+    <nav class="top-nav">
+      <div class="brand-lockup">
+        <span class="brand-mark">SF</span>
+        <div>
+          <p class="eyebrow">Signal Feed India</p>
+          <p class="nav-copy">Realtime desk for India-first news intelligence</p>
+        </div>
+      </div>
+      <div id="view-tabs" class="view-tabs"></div>
+    </nav>
+
+    <header class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">Live Desk</p>
+        <h1>India-first newsroom intelligence with a social pulse.</h1>
+        <p class="subhead">Track live headlines, understand which regions are heating up, and see how stories are likely to travel across X, YouTube, WhatsApp, LinkedIn, and Instagram.</p>
+      </div>
+      <div class="hero-status">
+        <div class="status-card large">
+          <span class="status-label">Tracked stories</span>
+          <strong id="story-count">0</strong>
+          <span class="status-foot" id="socket-status">connecting</span>
+        </div>
+        <div class="status-card">
+          <span class="status-label">Last update</span>
+          <strong id="last-updated">Waiting...</strong>
+        </div>
+      </div>
+    </header>
+
+    <section class="spotlight-grid view-panel" data-view-panel="overview stream analytics">
+      <article class="panel spotlight-panel">
+        <div class="panel-head">
+          <h2>Lead story</h2>
+          <span class="small-note">Best current signal</span>
+        </div>
+        <div id="spotlight-story"></div>
+      </article>
+      <article class="panel segment-panel">
+        <div class="panel-head">
+          <h2>News segments</h2>
+          <span class="small-note">Tap to refocus the desk</span>
+        </div>
+        <div id="segment-tabs" class="segment-tabs"></div>
+      </article>
+    </section>
+
+    <section id="summary-cards" class="summary-grid view-panel" data-view-panel="overview analytics"></section>
+
+    <section class="panel control-panel view-panel" data-view-panel="overview stream analytics">
+      <div class="panel-head tight">
+        <h2>Desk controls</h2>
+        <span class="small-note">Filter the live feed like a product, not a demo</span>
+      </div>
+      <div class="controls">
+        <label class="control-field">
+          <span>Search</span>
+          <input id="search-input" type="search" placeholder="Search headlines, summaries, regions" />
+        </label>
+        <label class="control-field">
+          <span>Topic</span>
+          <select id="topic-filter"><option value="All">All topics</option></select>
+        </label>
+        <label class="control-field">
+          <span>Region</span>
+          <select id="region-filter"><option value="All">All regions</option></select>
+        </label>
+      </div>
+    </section>
+
+    <section class="main-grid view-panel" data-view-panel="overview analytics">
+      <article class="panel panel-large">
+        <div class="panel-head">
+          <h2>Narrative velocity</h2>
+          <span class="small-note">Last 24 minutes</span>
+        </div>
+        <canvas id="timeline" height="260"></canvas>
+      </article>
+
+      <article class="panel social-panel">
+        <div class="panel-head">
+          <h2>Social buzz board</h2>
+          <span class="small-note">Predicted breakout stories</span>
+        </div>
+        <div id="social-leaders" class="social-list"></div>
+      </article>
+    </section>
+
+    <section class="analytics-grid view-panel" data-view-panel="overview analytics">
+      <article class="panel">
+        <div class="panel-head"><h2>Topic velocity</h2></div>
+        <div id="topics" class="metric-stack"></div>
+      </article>
+      <article class="panel">
+        <div class="panel-head"><h2>Region heatmap</h2></div>
+        <div id="regions" class="metric-stack"></div>
+      </article>
+      <article class="panel">
+        <div class="panel-head"><h2>Source activity</h2></div>
+        <div id="sources" class="metric-stack"></div>
+      </article>
+      <article class="panel">
+        <div class="panel-head"><h2>Sentiment mix</h2></div>
+        <div id="sentiment" class="metric-stack"></div>
+      </article>
+      <article class="panel panel-span-2">
+        <div class="panel-head"><h2>Trending keywords</h2></div>
+        <div id="trending" class="keyword-cloud"></div>
+      </article>
+      <article class="panel panel-span-2">
+        <div class="panel-head"><h2>Hashtag radar</h2></div>
+        <div id="hashtags" class="hashtag-grid"></div>
+      </article>
+    </section>
+
+    <section class="panel view-panel" data-view-panel="overview stream">
+      <div class="panel-head">
+        <h2>Live headlines</h2>
+        <span class="small-note" id="headline-count">0 stories visible</span>
+      </div>
+      <div id="headlines" class="headlines"></div>
+    </section>
+
+    <section class="global-layout view-panel hidden" data-view-panel="global">
+      <article class="panel global-hero-panel panel-span-2">
+        <div class="panel-head">
+          <h2>Global analysis desk</h2>
+          <span class="small-note">Dedicated world-news mode</span>
+        </div>
+        <div class="global-hero-grid">
+          <div id="global-spotlight"></div>
+          <div id="global-summary" class="global-summary"></div>
+        </div>
+      </article>
+      <article class="panel panel-span-2">
+        <div class="panel-head">
+          <h2>Deep-Dive Tracks</h2>
+          <span class="small-note">Politics, markets, conflict, tech, and sports</span>
+        </div>
+        <div id="deep-dive-cards" class="deep-dive-grid"></div>
+      </article>
+      <article class="panel">
+        <div class="panel-head"><h2>Global topic mix</h2></div>
+        <div id="global-topics" class="metric-stack"></div>
+      </article>
+      <article class="panel">
+        <div class="panel-head"><h2>Global source mix</h2></div>
+        <div id="global-sources" class="metric-stack"></div>
+      </article>
+      <article class="panel panel-span-2">
+        <div class="panel-head"><h2>Global trendboard</h2></div>
+        <div id="global-keywords" class="keyword-cloud"></div>
+      </article>
+      <article class="panel panel-span-2">
+        <div class="panel-head">
+          <h2>Global headlines</h2>
+          <span class="small-note" id="global-count">0 global stories</span>
+        </div>
+        <div id="global-headlines" class="headlines"></div>
+      </article>
+    </section>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
