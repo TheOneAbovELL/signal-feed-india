@@ -309,7 +309,7 @@ function renderFilters(snapshot) {
 function renderTimeline(points) {
   const width = canvas.clientWidth;
   const height = 260;
-  const ratio = window.devicePixelRatio || 1;
+  const ratio = globalThis.devicePixelRatio || 1;
   canvas.width = width * ratio;
   canvas.height = height * ratio;
   ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
@@ -443,15 +443,15 @@ async function hydrate() {
 }
 
 function connect() {
-  const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-  const socket = new WebSocket(`${protocol}://${window.location.host}/ws`);
+  const protocol = globalThis.location.protocol === "https:" ? "wss" : "ws";
+  const socket = new WebSocket(`${protocol}://${globalThis.location.host}/ws`);
 
   socket.addEventListener("open", () => {
     socketStatus.textContent = "live";
     if (state.pingTimer) {
       clearInterval(state.pingTimer);
     }
-    state.pingTimer = window.setInterval(() => {
+    state.pingTimer = setInterval(() => {
       if (socket.readyState === WebSocket.OPEN) {
         socket.send("ping");
       }
@@ -471,7 +471,7 @@ function connect() {
       clearInterval(state.pingTimer);
       state.pingTimer = null;
     }
-    window.setTimeout(connect, 1500);
+    setTimeout(connect, 1500);
   });
 }
 
@@ -496,7 +496,7 @@ regionFilter.addEventListener("change", (event) => {
   }
 });
 
-window.addEventListener("resize", () => {
+globalThis.addEventListener("resize", () => {
   if (state.snapshot) {
     renderTimeline(state.snapshot.timeline);
   }
@@ -508,3 +508,4 @@ hydrate().catch(() => {
 renderViewTabs();
 applyViewState();
 connect();
+
