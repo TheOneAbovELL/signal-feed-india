@@ -67,9 +67,9 @@ class DashboardStore:
         lead_story = max(stories, key=lambda story: story.social_score, default=None)
         cards = [
             {
-                "label": "Top India Region",
-                "value": next(iter(regions.keys()), "Global"),
-                "subtext": f"{next(iter(regions.values()), 0)} live mentions",
+                "label": "Desk focus",
+                "value": "India",
+                "subtext": f"{sum(regions.values())} live mentions",
             },
             {
                 "label": "Hottest Topic",

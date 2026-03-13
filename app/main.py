@@ -14,6 +14,7 @@ from .cache import cache
 from .config import settings
 from .db import init_db
 from .feeds import ingest_once
+from .on_this_day import fetch_on_this_day
 from .persistence import (
     create_alert_preference,
     create_saved_filter,
@@ -129,6 +130,11 @@ async def snapshot_v1() -> dict[str, object]:
     return await _snapshot()
 
 
+@api_v1.get("/on-this-day")
+async def on_this_day_v1() -> dict[str, object]:
+    return await fetch_on_this_day()
+
+
 @api_v1.get("/headlines")
 async def headlines_v1(
     topic: str | None = Query(default=None),
@@ -241,6 +247,7 @@ async def user_alert_create(payload: AlertPreferenceRequest, user=Depends(get_cu
 for route_path, route_handler in [
     ("/health", health_v1),
     ("/snapshot", snapshot_v1),
+    ("/on-this-day", on_this_day_v1),
     ("/headlines", headlines_v1),
     ("/stories/{story_id}", story_detail_v1),
     ("/analytics/history", analytics_history),

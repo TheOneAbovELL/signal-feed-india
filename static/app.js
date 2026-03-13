@@ -15,6 +15,9 @@ const el = (id) => document.getElementById(id);
 const storyCount = el("story-count");
 const lastUpdated = el("last-updated");
 const socketStatus = el("socket-status");
+const dayContext = el("day-context");
+const dayContextDate = el("day-context-date");
+const dayContextSource = el("day-context-source");
 const summaryCards = el("summary-cards");
 const sentiment = el("sentiment");
 const topics = el("topics");
@@ -25,6 +28,10 @@ const hashtags = el("hashtags");
 const socialLeaders = el("social-leaders");
 const headlines = el("headlines");
 const headlineCount = el("headline-count");
+const overviewAnalysis = el("overview-analysis");
+const streamHeadlines = el("stream-headlines");
+const streamHeadlineCount = el("stream-headline-count");
+const analyticsSummary = el("analytics-summary");
 const spotlightStory = el("spotlight-story");
 const segmentTabs = el("segment-tabs");
 const viewTabs = el("view-tabs");
@@ -39,22 +46,14 @@ const globalKeywords = el("global-keywords");
 const globalHeadlines = el("global-headlines");
 const globalCount = el("global-count");
 const deepDiveCards = el("deep-dive-cards");
-const clusterList = el("cluster-list");
-const savedViews = el("saved-views");
-const alertRules = el("alert-rules");
 const sourceTrust = el("source-trust");
-const saveViewBtn = el("save-view-btn");
-const saveAlertBtn = el("save-alert-btn");
 const themeToggle = el("theme-toggle");
-const expertToggle = el("expert-toggle");
-const expertPanel = el("expert-panel");
 const dialog = el("story-dialog");
 const storyDetail = el("story-detail");
 const canvas = el("timeline");
 const ctx = canvas.getContext("2d");
 const viewPanels = Array.from(document.querySelectorAll("[data-view-panel]"));
 
-state.expertMode = false;
 state.theme = localStorage.getItem("signalfeed.theme") || "light";
 
 const VIEW_OPTIONS = [
@@ -87,7 +86,7 @@ function persistLocalState() {
   localStorage.setItem("signalfeed.alertRules", JSON.stringify(state.alertRules));
   localStorage.setItem("signalfeed.theme", state.theme);
 }
-function formatTime(iso) { return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); }
+function formatTime(iso) { return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false }); }
 function cleanSummary(text) { return text.replace(/<[^>]+>/g, "").trim(); }
 function keywordCountsFromItems(items, limit = 12) {
   const counts = new Map();
@@ -123,7 +122,6 @@ function applyFilter({ topic, region, segment, query, view }) {
   renderFilters(state.snapshot || { topic_totals: {}, region_totals: {} });
   renderViewTabs();
   applyViewState();
-  renderExpertMode();
   if (state.snapshot) render(state.snapshot);
 }
 function renderBars(target, entries, colors, onClick) {
@@ -135,7 +133,44 @@ function renderBars(target, entries, colors, onClick) {
     </div>`).join("");
   if (onClick) target.querySelectorAll(".metric-row").forEach((node) => node.addEventListener("click", () => onClick(node.dataset.label)));
 }
-function renderSummary(cards) { summaryCards.innerHTML = cards.map((card) => `<article class="summary-card"><span class="status-label">${card.label}</span><strong>${card.value}</strong><p>${card.subtext}</p></article>`).join(""); }
+function renderSummary(cards) {
+  summaryCards.innerHTML = cards.map((card) => `
+    <article class="summary-card">
+      <span class="summary-label">${card.label}</span>
+      <strong class="summary-value">${card.value}</strong>
+      <p class="summary-copy">${card.subtext}</p>
+    </article>
+  `).join("");
+}
+function renderOnThisDay(payload) {
+  if (!dayContext || !dayContextDate) return;
+  dayContextDate.textContent = payload?.date_label || "Today";
+  if (dayContextSource) {
+    dayContextSource.textContent = payload?.source_name || "Trusted source";
+    dayContextSource.href = payload?.source_url || "#";
+  }
+  if (!payload?.available || !payload?.lead) {
+    dayContext.innerHTML = `<p class="day-context-empty">The daily history brief is unavailable right now. Refresh in a moment to try again.</p>`;
+    return;
+  }
+  const lead = payload.lead;
+  const highlights = Array.isArray(payload.items) ? payload.items : [];
+  dayContext.innerHTML = `
+    <article class="day-context-lead">
+      <span class="day-context-year">${lead.year || "Today"}</span>
+      <span class="day-context-kicker">On this day</span>
+      <a class="day-context-link" href="${lead.url || payload.source_url}" target="_blank" rel="noreferrer">${lead.title}</a>
+      <p>${lead.text}</p>
+    </article>
+    <div class="day-context-list">
+      ${highlights.map((item) => `
+        <article class="day-context-item">
+          <span class="day-context-year">${item.year || "-"}</span>
+          <p>${item.text}</p>
+        </article>`).join("")}
+    </div>
+  `;
+}
 function renderStoryCard(target, item, options = {}) {
   if (!item) { target.innerHTML = `<p class="spotlight-summary">${options.emptyText || "Waiting for a lead story."}</p>`; return; }
   target.innerHTML = `<article class="${options.className || "spotlight-card"}" data-story-id="${item.id}">
@@ -160,7 +195,10 @@ function bindFilterButtons(root = document) {
   root.querySelectorAll("[data-source]").forEach((node) => node.addEventListener("click", (event) => { event.stopPropagation(); applyFilter({ query: node.dataset.source, view: state.view }); }));
 }
 function renderSegmentTabs(items) {
-  segmentTabs.innerHTML = SEGMENT_PRESETS.map((preset) => { const count = items.filter((item) => preset.matcher(item)).length; return `<button class="segment-tab ${preset.id===state.segment?"active":""}" data-segment="${preset.id}"><span>${preset.label}</span><span class="segment-count">${count}</span></button>`; }).join("");
+  segmentTabs.innerHTML = SEGMENT_PRESETS.map((preset) => {
+    const count = items.filter((item) => preset.matcher(item)).length;
+    return `<button class="segment-tab ${preset.id===state.segment?"active":""}" data-segment="${preset.id}"><span class="segment-label">${preset.label}</span><span class="segment-count">${count}</span></button>`;
+  }).join("");
   segmentTabs.querySelectorAll("[data-segment]").forEach((button) => button.addEventListener("click", () => applyFilter({ segment: button.dataset.segment, view: button.dataset.segment === "Global" ? "global" : state.view })));
 }
 function renderViewTabs() {
@@ -168,12 +206,6 @@ function renderViewTabs() {
   viewTabs.querySelectorAll("[data-view]").forEach((button) => button.addEventListener("click", () => applyFilter({ view: button.dataset.view, segment: button.dataset.view === "global" ? "Global" : state.segment })));
 }
 function applyViewState() { viewPanels.forEach((panel) => panel.classList.toggle("hidden", !panel.dataset.viewPanel.split(" ").includes(state.view))); }
-function renderExpertMode() {
-  if (!expertPanel || !expertToggle) return;
-  expertPanel.classList.toggle("hidden", !state.expertMode);
-  expertToggle.textContent = state.expertMode ? "Pro Tools On" : "Pro Tools";
-  expertToggle.setAttribute("aria-pressed", state.expertMode ? "true" : "false");
-}
 function renderTheme() {
   document.documentElement.setAttribute("data-theme", state.theme);
   if (themeToggle) themeToggle.textContent = state.theme === "dark" ? "Light" : "Dark";
@@ -193,31 +225,65 @@ function renderHeadlineList(target, items) {
   bindFilterButtons(target);
   target.querySelectorAll("[data-open-story]").forEach((node) => node.addEventListener("click", (event) => { event.stopPropagation(); openStoryDetail(items.find((item)=>item.id===node.dataset.openStory)); }));
 }
-function renderHeadlines(items) { headlineCount.textContent = `${items.length} stories visible`; renderHeadlineList(headlines, items); }
+function renderHeadlines(items) {
+  headlineCount.textContent = `${items.length} stories visible`;
+  renderHeadlineList(headlines, items);
+  if (streamHeadlineCount) streamHeadlineCount.textContent = `${items.length} stories visible`;
+  if (streamHeadlines) renderHeadlineList(streamHeadlines, items);
+}
 function renderFilters(snapshot) {
   const topicOptions = ["All", ...Object.keys(snapshot.topic_totals || {}).sort((a,b)=>(snapshot.topic_totals[b]||0)-(snapshot.topic_totals[a]||0))];
-  const regionOptions = ["All", ...Object.keys(snapshot.region_totals || {}).sort((a,b)=>(snapshot.region_totals[b]||0)-(snapshot.region_totals[a]||0))];
+  const regionOptions = ["All", "Global", "National"];
   topicFilter.innerHTML = topicOptions.map((value) => `<option value="${value}" ${value===state.topic?"selected":""}>${value}</option>`).join("");
   regionFilter.innerHTML = regionOptions.map((value) => `<option value="${value}" ${value===state.region?"selected":""}>${value}</option>`).join("");
 }
 function renderTimeline(points) {
-  const width = canvas.clientWidth, height = 260, ratio = globalThis.devicePixelRatio || 1;
+  const width = canvas.clientWidth;
+  const height = Number(canvas.getAttribute("height")) || 220;
+  const ratio = globalThis.devicePixelRatio || 1;
   canvas.width = width * ratio; canvas.height = height * ratio; ctx.setTransform(ratio,0,0,ratio,0,0); ctx.clearRect(0,0,width,height);
   const max = Math.max(1, ...points.map((point) => point.total || 0), 1); const stepX = width / Math.max(1, points.length - 1);
-  ctx.beginPath(); points.forEach((point, index) => { const x=index*stepX; const y=height-30-((point.total||0)/max)*(height-70); index===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
-  ctx.strokeStyle="#36d1dc"; ctx.lineWidth=3; ctx.stroke(); ctx.lineTo(width,height-20); ctx.lineTo(0,height-20); ctx.closePath(); ctx.fillStyle="rgba(54, 209, 220, 0.10)"; ctx.fill();
-  ctx.fillStyle="#90a5bf"; ctx.font='11px "IBM Plex Mono"'; points.forEach((point,index)=>{ if(index%4!==0 && index!==points.length-1) return; ctx.fillText(formatTime(point.minute || point.bucket), index*stepX, height-4); });
+  const chartBottom = height - 28;
+  ctx.beginPath(); points.forEach((point, index) => { const x=index*stepX; const y=chartBottom-((point.total||0)/max)*(height-74); index===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+  ctx.strokeStyle="#36d1dc"; ctx.lineWidth=3; ctx.stroke(); ctx.lineTo(width,chartBottom); ctx.lineTo(0,chartBottom); ctx.closePath(); ctx.fillStyle="rgba(54, 209, 220, 0.10)"; ctx.fill();
+  ctx.fillStyle="#90a5bf"; ctx.font='11px "IBM Plex Mono"';
+  const labelStep = points.length > 6 ? Math.ceil(points.length / 4) : 2;
+  points.forEach((point,index)=>{
+    if ((index % labelStep !== 0) && index !== points.length - 1) return;
+    const label = formatTime(point.minute || point.bucket);
+    const x = Math.max(6, Math.min(index * stepX - 12, width - 34));
+    ctx.fillText(label, x, height - 8);
+  });
+}
+function renderAnalyticsSummary(snapshot) {
+  if (!analyticsSummary) return;
+  const topSource = Object.entries(snapshot.source_totals || {}).sort((a, b) => b[1] - a[1])[0];
+  const topSentiment = Object.entries(snapshot.sentiment_totals || {}).sort((a, b) => b[1] - a[1])[0];
+  analyticsSummary.innerHTML = [
+    topSource ? `<span class="platform-pill">Top source: ${topSource[0]} (${topSource[1]})</span>` : "",
+    `<span class="platform-pill">Coverage: India + Global</span>`,
+    topSentiment ? `<span class="platform-pill">Dominant sentiment: ${topSentiment[0]}</span>` : "",
+  ].join("");
+}
+function renderOverviewAnalysis(snapshot) {
+  if (!overviewAnalysis) return;
+  const hottestTopic = Object.entries(snapshot.topic_totals || {}).sort((a, b) => b[1] - a[1])[0];
+  const topSocial = (snapshot.social_leaders || [])[0];
+  const strongestSource = Object.entries(snapshot.source_totals || {}).sort((a, b) => b[1] - a[1])[0];
+  overviewAnalysis.innerHTML = [
+    hottestTopic ? `<span class="platform-pill">Hottest topic: ${hottestTopic[0]}</span>` : "",
+    topSocial ? `<span class="platform-pill">Top buzz: ${topSocial.source}</span>` : "",
+    strongestSource ? `<span class="platform-pill">Most active source: ${strongestSource[0]}</span>` : "",
+  ].join("");
 }
 function renderClusters(items) {
-  clusterList.innerHTML = items.map((item) => `<article class="stack-item" data-cluster-lead="${item.lead_story?.id || ""}"><div class="ops-head"><strong>${item.label}</strong><span>${item.story_count}</span></div><p class="stack-copy">${item.summary}</p><div class="headline-footer"><span class="platform-pill">Momentum ${item.momentum_score}</span></div></article>`).join("");
-  clusterList.querySelectorAll("[data-cluster-lead]").forEach((node)=>node.addEventListener("click",()=>{ const lead=(state.snapshot?.headlines||[]).find((story)=>story.id===node.dataset.clusterLead); if(lead) applyFilter({ topic: lead.topics[0] || "All", region: lead.regions[0] || "All" }); }));
+  return items;
 }
 function renderSavedViews() {
-  savedViews.innerHTML = state.savedViews.length ? state.savedViews.map((item, index) => `<article class="stack-item" data-saved-index="${index}"><div class="ops-head"><strong>${item.name}</strong><span>${item.segment || item.view}</span></div><p class="stack-copy">${item.topic || "All topics"} / ${item.region || "All regions"}</p></article>`).join("") : `<article class="stack-item"><p class="stack-copy">No saved views yet. Save your current setup here.</p></article>`;
-  savedViews.querySelectorAll("[data-saved-index]").forEach((node)=>node.addEventListener("click",()=>applyFilter(state.savedViews[Number(node.dataset.savedIndex)])));
+  return state.savedViews;
 }
 function renderAlertRules() {
-  alertRules.innerHTML = state.alertRules.length ? state.alertRules.map((item) => `<article class="stack-item"><div class="ops-head"><strong>${item.name}</strong><span>${item.threshold}+</span></div><p class="stack-copy">${item.scope}</p></article>`).join("") : `<article class="stack-item"><p class="stack-copy">No alert rules yet. Add topic spike or high pulse alerts.</p></article>`;
+  return state.alertRules;
 }
 function renderSourceTrust(items) {
   sourceTrust.innerHTML = items.slice(0, 6).map((item) => `<article class="trust-card"><div class="ops-head"><strong>${item.name}</strong><span>${Math.round(item.credibility_score*100)}</span></div><p class="trust-copy">${item.quality_tier} / ${item.bias_label}</p><p class="trust-copy">${item.transparency_note}</p><div class="headline-footer"><span class="platform-pill">${item.recent_story_count} recent stories</span></div></article>`).join("");
@@ -258,9 +324,13 @@ function render(snapshot) {
   renderBars(topics, Object.entries(snapshot.topic_totals).sort((a,b)=>b[1]-a[1]).slice(0,8), "linear-gradient(90deg, #36d1dc, #5b86e5)", (label)=>applyFilter({ topic: label }));
   renderBars(regions, Object.entries(snapshot.region_totals).sort((a,b)=>b[1]-a[1]).slice(0,8), "linear-gradient(90deg, #ff8a00, #ffd166)", (label)=>applyFilter({ region: label }));
   renderBars(sources, Object.entries(snapshot.source_totals).sort((a,b)=>b[1]-a[1]).slice(0,8), "linear-gradient(90deg, #7c3aed, #36d1dc)", (label)=>applyFilter({ query: label }));
-  renderKeywords(trending, snapshot.trending); renderHashtags(snapshot.hashtags); renderSocialLeaders(snapshot.social_leaders); renderFilters(snapshot); renderHeadlines(filteredHeadlines()); renderTimeline(snapshot.timeline); renderClusters(snapshot.clusters || []); renderSourceTrust(snapshot.source_trust || []); renderSavedViews(); renderAlertRules(); renderGlobalDashboard();
+  renderKeywords(trending, snapshot.trending); renderHashtags(snapshot.hashtags); renderSocialLeaders(snapshot.social_leaders); renderFilters(snapshot); renderHeadlines(filteredHeadlines()); renderTimeline(snapshot.timeline); renderSourceTrust(snapshot.source_trust || []); renderOverviewAnalysis(snapshot); renderAnalyticsSummary(snapshot); renderGlobalDashboard();
 }
 async function hydrate() { const response = await fetch("/api/v1/snapshot").catch(()=>fetch("/api/snapshot")); render(await response.json()); }
+async function hydrateOnThisDay() {
+  const response = await fetch("/api/v1/on-this-day").catch(() => fetch("/api/on-this-day"));
+  renderOnThisDay(await response.json());
+}
 function connect() {
   const protocol = globalThis.location.protocol === "https:" ? "wss" : "ws"; const socket = new WebSocket(`${protocol}://${globalThis.location.host}/ws`);
   socket.addEventListener("open", () => { socketStatus.textContent = "live"; if (state.pingTimer) clearInterval(state.pingTimer); state.pingTimer = setInterval(() => { if (socket.readyState === WebSocket.OPEN) socket.send("ping"); }, 15000); });
@@ -270,10 +340,9 @@ function connect() {
 searchInput.addEventListener("input", (event) => applyFilter({ query: event.target.value }));
 topicFilter.addEventListener("change", (event) => applyFilter({ topic: event.target.value }));
 regionFilter.addEventListener("change", (event) => applyFilter({ region: event.target.value }));
-saveViewBtn.addEventListener("click", () => { const name = prompt("Save this view as:", `${state.segment} Desk`); if (!name) return; state.savedViews.unshift({ name, topic: state.topic, region: state.region, query: state.query, segment: state.segment, view: state.view }); state.savedViews = state.savedViews.slice(0, 8); persistLocalState(); renderSavedViews(); });
-saveAlertBtn.addEventListener("click", () => { const name = prompt("Alert name:", "High pulse monitor"); if (!name) return; const threshold = Number(prompt("Minimum pulse score (0-100):", "80") || 80); state.alertRules.unshift({ name, threshold, scope: `${state.segment} / ${state.topic} / ${state.region}` }); state.alertRules = state.alertRules.slice(0, 8); persistLocalState(); renderAlertRules(); });
-if (expertToggle) expertToggle.addEventListener("click", () => { state.expertMode = !state.expertMode; persistLocalState(); renderExpertMode(); });
 if (themeToggle) themeToggle.addEventListener("click", () => { state.theme = state.theme === "dark" ? "light" : "dark"; persistLocalState(); renderTheme(); });
 globalThis.addEventListener("resize", () => { if (state.snapshot) renderTimeline(state.snapshot.timeline); });
-hydrate().catch(() => { socketStatus.textContent = "offline"; }); renderViewTabs(); applyViewState(); renderExpertMode(); renderTheme(); connect();
+hydrate().catch(() => { socketStatus.textContent = "offline"; });
+hydrateOnThisDay().catch(() => renderOnThisDay({ available: false, date_label: "Today" }));
+renderViewTabs(); applyViewState(); renderTheme(); connect();
 

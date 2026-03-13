@@ -13,16 +13,40 @@
   <div class="shell">
     <nav class="top-nav">
       <div class="brand-lockup">
-        <span class="brand-mark">SF</span>
-        <div>
-          <p class="eyebrow">Signal Feed India</p>
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 88 88" class="brand-logo" role="img">
+            <defs>
+              <linearGradient id="signalGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#2d6cdf" />
+                <stop offset="55%" stop-color="#29a85a" />
+                <stop offset="100%" stop-color="#f3ab53" />
+              </linearGradient>
+              <linearGradient id="waveGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#4c76d3" />
+                <stop offset="55%" stop-color="#d95aa2" />
+                <stop offset="100%" stop-color="#f4b24f" />
+              </linearGradient>
+            </defs>
+            <path d="M20 32h37c7.7 0 14 6.3 14 14v16c0 7.7-6.3 14-14 14H39L26 86l2-10h-8c-7.7 0-14-6.3-14-14V46c0-7.7 6.3-14 14-14Z" fill="none" stroke="url(#signalGradient)" stroke-width="4.8" stroke-linejoin="round"/>
+            <path d="M18 18c8-7 20-8 29-2" fill="none" stroke="url(#waveGradient)" stroke-width="4.4" stroke-linecap="round"/>
+            <path d="M24 23c6-5 15-5.8 22-1.3" fill="none" stroke="url(#waveGradient)" stroke-width="4" stroke-linecap="round"/>
+            <path d="M31 28c4-3 9.5-3.3 14-.8" fill="none" stroke="url(#waveGradient)" stroke-width="3.8" stroke-linecap="round"/>
+            <path d="M20 58l11-10 6 4 13-13" fill="none" stroke="#3a77b7" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M50 39l10 2-2 10" fill="none" stroke="#49ae63" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/>
+            <rect x="28" y="58" width="7" height="12" rx="1.5" fill="#4e7fd4"/>
+            <rect x="40" y="54" width="7" height="16" rx="1.5" fill="#62bf5d"/>
+            <rect x="52" y="48" width="7" height="22" rx="1.5" fill="#f2af4f"/>
+          </svg>
+        </div>
+        <div class="brand-copy">
+          <p class="eyebrow">SignalFeed</p>
+          <h2 class="brand-title">SignalFeed India</h2>
           <p class="nav-copy">Realtime desk for India-first news intelligence</p>
         </div>
       </div>
       <div class="nav-actions">
         <div id="view-tabs" class="view-tabs"></div>
         <button id="theme-toggle" class="nav-toggle" type="button">Light</button>
-        <button id="expert-toggle" class="nav-toggle nav-toggle-subtle" type="button" aria-pressed="false">Pro Tools</button>
       </div>
     </nav>
 
@@ -34,9 +58,27 @@
 
     <header class="hero">
       <div class="hero-copy">
-        <p class="eyebrow">Realtime Briefing</p>
+        <div class="hero-topline">
+          <p class="eyebrow">Realtime Briefing</p>
+          <div class="hero-meta">
+            <span class="hero-meta-label">Last update</span>
+            <strong id="last-updated">Waiting...</strong>
+          </div>
+        </div>
         <h1>News that feels fast, clear, and usable.</h1>
         <p class="subhead">Scan the biggest stories, switch between India and global desks, and drill into deeper analysis only when you need it.</p>
+        <div class="hero-brief">
+          <article class="hero-brief-card">
+            <span class="hero-brief-label">Built for</span>
+            <strong>Fast scanning</strong>
+            <p>See what matters without digging through clutter.</p>
+          </article>
+          <article class="hero-brief-card">
+            <span class="hero-brief-label">Best use</span>
+            <strong>India + Global desk</strong>
+            <p>Track signal shifts, source movement, and social pickup in one place.</p>
+          </article>
+        </div>
         <div class="hero-tags">
           <span class="hero-tag">Top Stories</span>
           <span class="hero-tag">Trending Now</span>
@@ -50,10 +92,18 @@
           <strong id="story-count">0</strong>
           <span class="status-foot" id="socket-status">connecting</span>
         </div>
-        <div class="status-card">
-          <span class="status-label">Last update</span>
-          <strong id="last-updated">Waiting...</strong>
-        </div>
+        <article class="status-card context-card">
+          <div class="panel-head tight">
+            <div>
+              <span class="status-label">Why today matters</span>
+              <p class="context-date" id="day-context-date">Loading today's context...</p>
+            </div>
+            <a id="day-context-source" class="small-note context-source" href="https://en.wikipedia.org/wiki/Main_Page" target="_blank" rel="noreferrer">Loading source</a>
+          </div>
+          <div id="day-context" class="day-context">
+            <p class="day-context-empty">Pulling a quick historical brief for today.</p>
+          </div>
+        </article>
       </div>
     </header>
 
@@ -97,45 +147,7 @@
       </div>
     </section>
 
-    <section id="expert-panel" class="panel control-panel view-panel hidden" data-view-panel="overview stream analytics global">
-      <div class="panel-head tight">
-        <h2>Pro workspace</h2>
-        <span class="small-note">Saved views, alerts, and narrative monitoring tools</span>
-      </div>
-      <div class="ops-grid">
-        <article class="ops-card">
-          <div class="ops-head">
-            <h3>Saved views</h3>
-            <button id="save-view-btn" class="action-btn">Save current view</button>
-          </div>
-          <div id="saved-views" class="stack-list"></div>
-        </article>
-        <article class="ops-card">
-          <div class="ops-head">
-            <h3>Alerting</h3>
-            <button id="save-alert-btn" class="action-btn">Add alert rule</button>
-          </div>
-          <div id="alert-rules" class="stack-list"></div>
-        </article>
-        <article class="ops-card">
-          <div class="ops-head">
-            <h3>Narrative clusters</h3>
-            <span class="small-note">Deduped story lanes</span>
-          </div>
-          <div id="cluster-list" class="stack-list"></div>
-        </article>
-      </div>
-    </section>
-
-    <section class="main-grid view-panel" data-view-panel="overview analytics">
-      <article class="panel panel-large panel-accent-cyan">
-        <div class="panel-head">
-          <h2>Narrative velocity</h2>
-          <span class="small-note">Last 24 minutes</span>
-        </div>
-        <canvas id="timeline" height="260"></canvas>
-      </article>
-
+    <section class="main-grid view-panel" data-view-panel="overview">
       <article class="panel social-panel panel-accent-amber">
         <div class="panel-head">
           <h2>Social buzz board</h2>
@@ -143,24 +155,77 @@
         </div>
         <div id="social-leaders" class="social-list"></div>
       </article>
+
+      <section class="panel overview-headlines">
+        <div class="panel-head">
+          <h2>Live headlines</h2>
+          <span class="small-note" id="headline-count">0 stories visible</span>
+        </div>
+        <div id="headlines" class="headlines"></div>
+      </section>
+
+      <aside class="overview-rail">
+        <article class="panel panel-accent-cyan panel-compact">
+          <div class="panel-head"><h2>Topic velocity</h2></div>
+          <div id="topics" class="metric-stack"></div>
+        </article>
+        <article class="panel panel-accent-green panel-compact">
+          <div class="panel-head">
+            <h2>Sentiment mix</h2>
+            <span class="small-note">Desk tone right now</span>
+          </div>
+          <div id="sentiment" class="metric-stack"></div>
+        </article>
+        <article class="panel panel-accent-cyan panel-compact">
+          <div class="panel-head">
+            <h2>Quick analysis</h2>
+            <span class="small-note">Fast editorial takeaways</span>
+          </div>
+          <div id="overview-analysis" class="keyword-cloud"></div>
+        </article>
+        <article class="panel panel-accent-amber panel-compact">
+          <div class="panel-head"><h2>Region heatmap</h2></div>
+          <div id="regions" class="metric-stack"></div>
+        </article>
+        <article class="panel panel-accent-violet panel-compact">
+          <div class="panel-head"><h2>Source activity</h2></div>
+          <div id="sources" class="metric-stack"></div>
+        </article>
+        <article class="panel panel-accent-amber panel-compact">
+          <div class="panel-head"><h2>Trending keywords</h2></div>
+          <div id="trending" class="keyword-cloud"></div>
+        </article>
+        <article class="panel panel-accent-violet panel-compact">
+          <div class="panel-head"><h2>Hashtag radar</h2></div>
+          <div id="hashtags" class="hashtag-grid"></div>
+        </article>
+        <article class="panel panel-accent-violet panel-compact">
+          <div class="panel-head">
+            <h2>Trust radar</h2>
+            <span class="info-dot" title="Trust radar summarizes source credibility, editorial quality, and recent activity for the outlets currently driving the dashboard.">i</span>
+          </div>
+          <div id="source-trust" class="trust-grid trust-grid-compact"></div>
+        </article>
+        <article class="panel panel-accent-cyan panel-compact">
+          <div class="panel-head">
+            <h2>Narrative velocity</h2>
+            <span class="small-note">Live movement</span>
+          </div>
+          <canvas id="timeline" height="120"></canvas>
+        </article>
+      </aside>
     </section>
 
-    <section class="analytics-grid view-panel" data-view-panel="overview analytics">
-      <article class="panel panel-accent-cyan"><div class="panel-head"><h2>Topic velocity</h2></div><div id="topics" class="metric-stack"></div></article>
-      <article class="panel panel-accent-amber"><div class="panel-head"><h2>Region heatmap</h2></div><div id="regions" class="metric-stack"></div></article>
-      <article class="panel panel-accent-violet"><div class="panel-head"><h2>Source activity</h2></div><div id="sources" class="metric-stack"></div></article>
-      <article class="panel panel-accent-green"><div class="panel-head"><h2>Sentiment mix</h2></div><div id="sentiment" class="metric-stack"></div></article>
-      <article class="panel panel-span-2 panel-accent-cyan"><div class="panel-head"><h2>Trending keywords</h2></div><div id="trending" class="keyword-cloud"></div></article>
-      <article class="panel panel-span-2 panel-accent-amber"><div class="panel-head"><h2>Hashtag radar</h2></div><div id="hashtags" class="hashtag-grid"></div></article>
-      <article class="panel panel-span-2 panel-accent-violet"><div class="panel-head"><h2>Source trust model</h2></div><div id="source-trust" class="trust-grid"></div></article>
+    <section class="analytics-grid view-panel" data-view-panel="analytics">
+      <article class="panel panel-span-2 panel-accent-cyan"><div class="panel-head"><h2>Analytics desk</h2><span class="small-note">Distribution, sentiment, and source movement</span></div><div id="analytics-summary" class="keyword-cloud"></div></article>
     </section>
 
-    <section class="panel view-panel" data-view-panel="overview stream">
+    <section class="panel view-panel" data-view-panel="stream">
       <div class="panel-head">
         <h2>Live headlines</h2>
-        <span class="small-note" id="headline-count">0 stories visible</span>
+        <span class="small-note" id="stream-headline-count">0 stories visible</span>
       </div>
-      <div id="headlines" class="headlines"></div>
+      <div id="stream-headlines" class="headlines"></div>
     </section>
 
     <section class="global-layout view-panel hidden" data-view-panel="global">
@@ -185,6 +250,11 @@
       <div id="story-detail"></div>
     </form>
   </dialog>
+
+  <footer class="site-footer">
+    <p>Signal Feed India</p>
+    <p>For research and information monitoring only. External headlines, logos, and summaries remain the property of their respective publishers.</p>
+  </footer>
 
   <script src="/static/app.js"></script>
 </body>

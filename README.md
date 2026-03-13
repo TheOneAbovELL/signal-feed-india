@@ -1,8 +1,8 @@
 <div align="center">
 
-# Signal Feed India
+# SignalFeed India
 
-### Real-Time News Intelligence Dashboard for India and Global News Monitoring
+### Real-Time News Intelligence Dashboard for India-First and Global Monitoring
 
 [![Python](https://img.shields.io/badge/Python-3.13+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-Backend-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
@@ -10,7 +10,7 @@
 [![Status](https://img.shields.io/badge/Status-Active-success?style=for-the-badge)](#)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](#license)
 
-Signal Feed India is a full-stack live news intelligence platform that aggregates Indian and global RSS feeds, enriches stories with editorial and social signals, and presents them through a polished multi-view dashboard.
+SignalFeed India is a full-stack newsroom intelligence product that aggregates Indian and global news feeds, enriches stories with editorial and trust signals, and presents them in a polished live dashboard designed for fast scanning and deeper analysis when needed.
 
 </div>
 
@@ -18,25 +18,183 @@ Signal Feed India is a full-stack live news intelligence platform that aggregate
 
 ## Overview
 
-Signal Feed India is built as a newsroom-style command center rather than a simple feed reader.
+SignalFeed India is built like a lightweight media-intelligence desk rather than a generic feed reader.
 
-It continuously ingests stories from Indian and global sources, classifies them into useful editorial segments, assigns derived momentum signals, and streams live updates to the browser in real time.
+It combines:
 
-The platform is designed for fast scanning, trend discovery, segment switching, and global deep-dive monitoring.
+- live RSS ingestion
+- editorial topic and region classification
+- source trust and social-pulse modelling
+- narrative clustering and deduplication
+- real-time dashboard updates over WebSockets
+- a refined multi-view UI for overview, analytics, stream monitoring, and global coverage
+
+The product is optimized to feel readable and professional for everyday users while still exposing richer intelligence features through the backend and the deeper dashboard views.
 
 ---
 
-## Highlights
+## What It Does
 
-- India-first live dashboard with dedicated global analysis mode
-- real-time updates using WebSockets
-- asynchronous RSS ingestion pipeline
-- editorial topic classification and region-aware tagging
-- social pulse scoring and hashtag radar
-- multiple dashboard modes: `Overview`, `Analytics`, `Stream`, `Global`
-- interactive segment switching for India, Governance, Economy, Startups, Cricket, and Global
-- deep-dive cards for Politics, Markets, Conflict, Tech, and Sports
-- graceful fallback sample stories for demo or offline rendering
+SignalFeed India continuously ingests stories from Indian and global publishers, normalizes them into a common structure, scores them for editorial and social relevance, and pushes live snapshots to the frontend.
+
+It also adds product-oriented layers such as:
+
+- source credibility and bias metadata
+- compact trust radar panels
+- social buzz ranking
+- global deep-dive tracks
+- historical “On this day” context
+- story detail modals with related stories and source history
+
+---
+
+## Current Product Highlights
+
+- India-first newsroom dashboard with dedicated global mode
+- FastAPI backend with versioned APIs under `/api/v1`
+- live updates via WebSockets
+- async feed ingestion with a separate worker path
+- SQLAlchemy-backed persistence layer
+- Redis-aware caching support
+- APScheduler-based background jobs
+- source trust modelling with credibility, bias, and quality tier metadata
+- social-pulse scoring with explainable factors
+- heuristic + optional ML-assisted classification hooks
+- narrative clustering and story deduplication
+- historical context card for the current date
+- polished light and dark themes
+
+---
+
+## Dashboard Views
+
+### Overview
+
+The default newsroom home for quick scanning.
+
+It includes:
+
+- lead story
+- segment chips
+- summary cards
+- quick filters
+- social buzz board
+- live headlines
+- compact right-side intelligence rail
+
+### Analytics
+
+A lighter interpretation layer for understanding the shape of the feed rather than only the stories themselves.
+
+It focuses on:
+
+- source movement
+- tone and sentiment
+- supporting dashboard signals
+
+### Stream
+
+A faster monitoring view for headline-first scanning.
+
+Best for:
+
+- quick headline review
+- staying on the live feed
+- filtering without the broader dashboard framing
+
+### Global
+
+A dedicated world-news desk separated from the India-first view.
+
+It includes:
+
+- global spotlight
+- global summary cards
+- global source and topic mix
+- global trendboard
+- separate global headlines stream
+- deep-dive tracks for politics, markets, conflict, tech, and sports
+
+---
+
+## Core Features
+
+### Real-Time Feed Ingestion
+
+- concurrent RSS fetching using `aiohttp`
+- feed parsing with `feedparser`
+- worker-driven refresh support
+- live snapshot broadcasting over WebSockets
+
+### Story Enrichment
+
+Each story can be enriched with:
+
+- topic tags
+- region tags
+- source category
+- sentiment
+- hashtags
+- source credibility and bias labels
+- social pulse score
+- social confidence band
+- explanation factors for why the story was scored
+
+### Source Trust Modelling
+
+The dashboard includes trust-aware metadata for sources, including:
+
+- credibility score
+- bias label
+- quality tier
+- transparency note
+
+This powers the `Trust radar` and the story detail experience.
+
+### Narrative Intelligence
+
+The backend includes:
+
+- deduplication
+- narrative clustering
+- cluster payload generation
+- history snapshots across multiple windows
+
+### Historical Context
+
+The right-side hero area includes a daily historical context card that pulls “On this day” facts and keeps the product feeling more editorial and alive.
+
+### Story Detail Modal
+
+Each story can open into a detail view with:
+
+- source and trust metadata
+- topic and region tags
+- explanation of scoring/tagging
+- related stories
+- source history
+
+---
+
+## UI and Product Design
+
+The frontend is intentionally designed to be:
+
+- simpler for normal users
+- richer in analysis without overwhelming the default view
+- cleaner in space usage
+- readable for longer sessions
+- consistent across light and dark themes
+
+Recent UI refinements include:
+
+- a more professional header and hero
+- refined typography and spacing
+- compact intelligence rail
+- improved lead-story hierarchy
+- a subdued grey light theme
+- a black/charcoal dark theme closer to modern premium productivity tools
+- a modal style aligned with the core site theme
 
 ---
 
@@ -68,104 +226,35 @@ The platform is designed for fast scanning, trend discovery, segment switching, 
 
 ---
 
-## Core Features
+## Architecture
 
-### 1. Real-Time Feed Ingestion
+SignalFeed India now has a fuller backend structure than the original starter dashboard.
 
-- Fetches multiple Indian and global RSS feeds concurrently using `aiohttp`
-- Parses structured feed data using `feedparser`
-- refreshes snapshots at regular intervals
-- pushes live updates to the frontend over WebSockets
+### Backend
 
-### 2. Story Enrichment Pipeline
+- FastAPI application server
+- versioned routes and legacy compatibility routes
+- WebSocket connection manager
+- background scheduler for refresh jobs
+- optional worker process for ingestion
+- SQLAlchemy persistence layer
+- Redis-aware cache abstraction
 
-Each story is enhanced with:
+### Frontend
 
-- topic tags
-- region tags
-- source category labels
-- sentiment classification
-- derived hashtag suggestions
-- social pulse score
-- recommended social distribution platforms
+- server-rendered static shell
+- vanilla JavaScript app
+- live UI hydration from REST + WebSocket snapshots
+- modal details and interactive filter chips
 
-### 3. India-First Editorial Segments
+### Data Flow
 
-The dashboard is optimized for India-relevant monitoring with segments such as:
-
-- India
-- Governance
-- Economy
-- Startups
-- Cricket
-- AI & Tech
-- Geopolitics
-- Climate
-- Infra & Mobility
-- Culture
-- Science
-
-### 4. Global Analysis Desk
-
-The dedicated Global mode includes:
-
-- a world-news spotlight card
-- global summary cards
-- global topic mix
-- global source mix
-- global keyword trendboard
-- separate global headline stream
-- deep-dive cards for:
-  - Politics
-  - Markets
-  - Conflict
-  - Tech
-  - Sports
-
-### 5. Product-Style UI
-
-Users can:
-
-- switch between dashboard modes
-- search live headlines
-- filter by topic and region
-- use segment chips for faster navigation
-- inspect social buzz rankings
-- explore global news separately from India-focused reporting
-
----
-
-## How It Works
-
-Signal Feed India follows a lightweight real-time intelligence pipeline:
-
-1. RSS feeds are fetched asynchronously from Indian and global publishers.
-2. Story fields are normalized into a shared structure.
-3. NLP-style heuristic enrichment assigns:
-   - topics
-   - region relevance
-   - sentiment
-   - hashtags
-   - social pulse score
-4. Stories are stored in an in-memory dashboard store.
-5. Snapshot payloads are exposed through REST APIs.
-6. The browser receives live updates through WebSockets.
-7. The UI renders stories across overview, analytics, stream, and global views.
-
----
-
-## Tech Stack
-
-| Tool | Purpose |
-|------|---------|
-| Python 3.13+ | Core backend language |
-| FastAPI | Web framework |
-| Uvicorn | ASGI server |
-| aiohttp | Async RSS fetching |
-| feedparser | RSS parsing |
-| WebSockets | Realtime updates |
-| Vanilla JavaScript | Frontend logic |
-| HTML/CSS | Dashboard UI |
+1. feeds are fetched and normalized
+2. stories are enriched with classification and source metadata
+3. deduplication and clustering are applied
+4. snapshot payloads are assembled
+5. the UI fetches and receives live snapshot updates
+6. users can drill into stories, filters, and global lanes
 
 ---
 
@@ -173,28 +262,39 @@ Signal Feed India follows a lightweight real-time intelligence pipeline:
 
 ```text
 signal-feed-india/
-+-- app/
-¦   +-- __init__.py
-¦   +-- classifier.py        # Topic, sentiment, hashtag, and region logic
-¦   +-- config.py            # Feed configuration and dashboard settings
-¦   +-- feeds.py             # Async RSS ingestion and story creation
-¦   +-- main.py              # FastAPI app, routes, and websocket server
-¦   +-- models.py            # Story data model
-¦   +-- store.py             # In-memory dashboard store and snapshot builder
-+-- static/
-¦   +-- app.js               # Frontend dashboard logic
-¦   +-- index.html           # Main app UI
-¦   +-- styles.css           # Product styling
-+-- docs/
-¦   +-- screenshots/         # README image assets
-+-- requirements.txt
-+-- README.md
-+-- .gitignore
+├── app/
+│   ├── auth.py            # Auth helpers and token flow
+│   ├── cache.py           # Cache abstraction with Redis-aware support
+│   ├── classifier.py      # Topic, sentiment, hashtag, and signal enrichment
+│   ├── config.py          # Environment settings and feed definitions
+│   ├── db.py              # Database engine/session setup
+│   ├── feeds.py           # Async feed ingestion
+│   ├── intelligence.py    # Deduplication and narrative clustering
+│   ├── main.py            # FastAPI app, APIs, and websocket endpoint
+│   ├── ml.py              # Optional ML-assisted classification helpers
+│   ├── models.py          # Story and persistence models
+│   ├── on_this_day.py     # Daily historical context provider
+│   ├── persistence.py     # Story/source/user persistence functions
+│   ├── schemas.py         # Request/response schemas
+│   ├── store.py           # Snapshot builder
+│   ├── tasks.py           # Scheduler tasks
+│   └── worker.py          # Worker entry point
+├── static/
+│   ├── app.js             # Frontend logic
+│   ├── index.html         # Main UI shell
+│   └── styles.css         # Product styling and theme system
+├── docs/
+│   └── screenshots/       # README screenshots
+├── .env.example
+├── Dockerfile
+├── docker-compose.yml
+├── requirements.txt
+└── README.md
 ```
 
 ---
 
-## Getting Started
+## Setup
 
 ### 1. Clone the repository
 
@@ -209,7 +309,19 @@ cd signal-feed-india
 pip install -r requirements.txt
 ```
 
-### 3. Run the application
+### 3. Optional environment file
+
+```bash
+cp .env.example .env
+```
+
+On Windows PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+### 4. Run the API
 
 ```bash
 python -m uvicorn app.main:app --reload
@@ -217,134 +329,184 @@ python -m uvicorn app.main:app --reload
 
 Open: [http://127.0.0.1:8000](http://127.0.0.1:8000)
 
+### 5. Run the worker in a second terminal
+
+```bash
+python -m app.worker
+```
+
 ---
 
-## API Endpoints
+## Docker
 
-### Health Check
+You can also run the stack with containers:
+
+```bash
+docker-compose up --build
+```
+
+This is useful for a cleaner production-style setup and for consistent local environments.
+
+---
+
+## API Surface
+
+### Health
+
 ```http
+GET /api/v1/health
 GET /api/health
 ```
 
-### Full Dashboard Snapshot
+### Snapshot
+
 ```http
+GET /api/v1/snapshot
 GET /api/snapshot
 ```
 
-Returns live dashboard payloads including:
+Returns dashboard state including:
 
 - story count
 - headlines
 - topic totals
 - source totals
 - source categories
-- region totals
 - sentiment totals
+- region totals
 - hashtags
 - social leaders
 - timeline
 - summary cards
+- source trust
+- history windows
+- clustering payload
 
-### Filtered Headlines
+### Headlines
+
 ```http
-GET /api/headlines?topic=India
-GET /api/headlines?region=Delhi%20NCR
-GET /api/headlines?q=startup
+GET /api/v1/headlines?topic=India
+GET /api/v1/headlines?region=Global
+GET /api/v1/headlines?q=startup
+GET /api/v1/headlines?sentiment=positive
 ```
 
-### WebSocket Feed
+### Story Details
+
+```http
+GET /api/v1/stories/{story_id}
+```
+
+### Analytics
+
+```http
+GET /api/v1/analytics/history?window=24h
+GET /api/v1/analytics/source-trust
+GET /api/v1/analytics/social-model
+```
+
+### Daily Historical Context
+
+```http
+GET /api/v1/on-this-day
+GET /api/on-this-day
+```
+
+### Auth and User APIs
+
+```http
+POST /api/v1/auth/register
+POST /api/v1/auth/login
+GET  /api/v1/auth/me
+
+GET  /api/v1/user/workspaces
+POST /api/v1/user/workspaces
+GET  /api/v1/user/saved-filters
+POST /api/v1/user/saved-filters
+GET  /api/v1/user/watchlists
+POST /api/v1/user/watchlists
+GET  /api/v1/user/alerts
+POST /api/v1/user/alerts
+```
+
+### WebSocket
+
 ```http
 GET /ws
 ```
 
 ---
 
-## Dashboard Modes
+## Dependencies
 
-### Overview
-A balanced editorial command center with:
-- spotlight story
-- segment chips
-- summary cards
-- narrative timeline
-- social buzz board
-- live headlines
+Current key dependencies from `requirements.txt`:
 
-### Analytics
-A signal-heavy mode for:
-- topic velocity
-- region heatmap
-- source activity
-- sentiment mix
-- keyword trends
-- hashtag radar
-
-### Stream
-A faster monitoring mode focused on:
-- filters
-- search
-- rapid headline scanning
-- segment-driven navigation
-
-### Global
-A dedicated world-news workspace featuring:
-- global spotlight story
-- global summary cards
-- global topic and source mix
-- trendboard
-- deep-dive global tracks
-- separate global story stream
+- `fastapi`
+- `uvicorn`
+- `aiohttp`
+- `feedparser`
+- `websockets`
+- `sqlalchemy`
+- `pydantic[email]`
+- `redis`
+- `apscheduler`
+- `psycopg[binary]`
+- `scikit-learn`
 
 ---
 
-## Example Use Cases
+## Typical Workflow
 
-Signal Feed India is useful for:
+### Run locally
 
-- editorial monitoring
-- journalism projects
-- news product prototypes
-- media intelligence dashboards
-- research demos
-- trend analysis across Indian and global news streams
+```bash
+python -m uvicorn app.main:app --reload
+```
 
----
+### Start worker
 
-## Fallback Behavior
+```bash
+python -m app.worker
+```
 
-If live RSS feeds fail or are temporarily unreachable, the dashboard loads themed sample stories so the UI remains testable and visually complete.
+### Open the app
 
-This makes the project useful for:
+```text
+http://127.0.0.1:8000
+```
 
-- demos
-- local development
-- screenshot generation
-- UI testing
-- offline presentation
+### Explore
+
+- scan the lead story
+- switch segments like India, Governance, Economy, or Global
+- open a story modal for related coverage and trust metadata
+- use Stream for fast headline monitoring
+- use Global for dedicated world-news analysis
+- check the right rail for trends, keywords, trust, and historical context
 
 ---
 
 ## Current Limitations
 
-- social media integration is currently modeled, not directly API-powered
-- stories are stored in-memory rather than in a database
-- classification uses heuristic rules rather than transformer models
-- there are no user accounts, saved dashboards, or persistent watchlists yet
+- direct social media APIs are not yet integrated
+- frontend auth flows are not yet surfaced in the main UI
+- some enrichment remains heuristic unless ML support is enabled
+- local environments without internet access may rely on fallback content
+- the daily history panel depends on available history providers or built-in fallback facts
 
 ---
 
-## Future Improvements
+## Roadmap
 
-Potential next upgrades include:
+Strong next upgrades could include:
 
-- direct X / Reddit / YouTube integrations
-- persistent storage and historical trend analysis
-- saved watchlists and custom editorial lanes
-- clickable deep-dive cards that filter stories in place
-- richer article detail drawers or modal views
-- alerting for high-momentum stories
+- direct X / Reddit / YouTube ingestion
+- richer persistent user workspaces in the UI
+- fully surfaced saved views and alert management
+- better historical analytics visualizations
 - multilingual support
-- transformer-based story enrichment
+- transformer-based ranking and classification
+- deployment hardening and CI/CD
 
 ---
 
