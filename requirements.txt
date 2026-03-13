@@ -5,3 +5,7 @@ feedparser
 websockets
 sqlalchemy
 pydantic[email]
+redis
+apscheduler
+psycopg[binary]
+scikit-learn

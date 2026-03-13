@@ -5,8 +5,8 @@ import logging
 
 from .config import settings
 from .db import init_db
-from .feeds import ingest_once
 from .persistence import seed_sources
+from .tasks import start_scheduler
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -16,11 +16,10 @@ logger = logging.getLogger("signal-feed-worker")
 async def run_worker() -> None:
     init_db()
     seed_sources(settings.feeds)
-    logger.info("Worker started. Polling %s feeds every %s seconds.", len(settings.feeds), settings.poll_interval_seconds)
+    scheduler = start_scheduler()
+    logger.info("Worker started with scheduler=%s redis=%s.", bool(scheduler), settings.enable_redis)
     while True:
-        added = await ingest_once(settings.feeds)
-        logger.info("Ingestion cycle complete. Added %s new stories.", len(added))
-        await asyncio.sleep(settings.poll_interval_seconds)
+        await asyncio.sleep(3600)
 
 
 if __name__ == "__main__":

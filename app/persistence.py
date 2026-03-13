@@ -93,7 +93,19 @@ def persist_stories(stories: list[Story]) -> list[Story]:
                 continue
             source = session.scalar(select(SourceRecord).where(SourceRecord.name == story.source))
             if source is None:
-                continue
+                source = SourceRecord(
+                    name=story.source,
+                    url=story.link,
+                    color=story.source_color,
+                    category=story.source_category,
+                    credibility_score=story.source_credibility_score,
+                    bias_label=story.source_bias_label,
+                    quality_tier=story.source_quality_tier,
+                    transparency_note="Demo or discovered source created during ingestion.",
+                    active=True,
+                )
+                session.add(source)
+                session.flush()
             session.add(
                 StoryRecord(
                     story_id=story.id,
@@ -114,7 +126,6 @@ def persist_stories(stories: list[Story]) -> list[Story]:
             )
             added.append(story)
 
-        # keep the dataset bounded for local/dev use
         all_ids = list(session.scalars(select(StoryRecord.id).order_by(StoryRecord.published_at.desc())))
         if len(all_ids) > settings.max_headlines * 8:
             stale_ids = all_ids[settings.max_headlines * 8 :]
@@ -129,6 +140,37 @@ def get_recent_stories(limit: int | None = None) -> list[Story]:
     with session_scope() as session:
         records = list(session.scalars(query))
     return [story_from_record(record) for record in records]
+
+
+def get_story_by_id(story_id: str) -> Story | None:
+    with session_scope() as session:
+        record = session.scalar(
+            select(StoryRecord)
+            .options(joinedload(StoryRecord.source))
+            .where(StoryRecord.story_id == story_id)
+        )
+    return story_from_record(record) if record else None
+
+
+def get_story_detail_payload(story_id: str) -> dict[str, object] | None:
+    story = get_story_by_id(story_id)
+    if story is None:
+        return None
+
+    recent = get_recent_stories(limit=settings.max_headlines * 2)
+    related = [
+        item.to_dict()
+        for item in recent
+        if item.id != story.id and (set(item.topics) & set(story.topics) or item.source == story.source)
+    ][:6]
+    source_history = [item.to_dict() for item in recent if item.source == story.source][:6]
+
+    return {
+        "story": story.to_dict(),
+        "related": related,
+        "source_history": source_history,
+        "why_tagged": story.social_explanation,
+    }
 
 
 def get_history(window: str) -> list[dict[str, object]]:
@@ -157,10 +199,7 @@ def get_history(window: str) -> list[dict[str, object]]:
         for topic in story.topics:
             buckets[bucket][topic] += 1
 
-    return [
-        {"bucket": bucket.isoformat(), **dict(counter)}
-        for bucket, counter in sorted(buckets.items())
-    ]
+    return [{"bucket": bucket.isoformat(), **dict(counter)} for bucket, counter in sorted(buckets.items())]
 
 
 def get_source_trust_report() -> list[dict[str, object]]:
@@ -187,7 +226,7 @@ def get_source_trust_report() -> list[dict[str, object]]:
 def social_model_definition() -> dict[str, object]:
     return {
         "name": "social-pulse-v2",
-        "description": "Weighted heuristic scoring model for estimating likely downstream story pickup.",
+        "description": "Weighted scoring model for estimating likely downstream story pickup, with optional ML-assisted topic inference.",
         "factors": [
             {"factor": "base_activity", "weight": 28, "description": "Baseline live news visibility"},
             {"factor": "urgency_keywords", "weight_cap": 20, "description": "High-attention phrasing such as breaking, war, election, or viral"},
@@ -195,6 +234,10 @@ def social_model_definition() -> dict[str, object]:
             {"factor": "regional_relevance", "weight": "3-6", "description": "Regional specificity increases audience forwarding behaviour"},
             {"factor": "source_trust", "weight": "up to 22", "description": "High-trust sources improve confidence in continued pickup"},
         ],
+        "classification": {
+            "mode": "ml+heuristic fallback" if settings.enable_ml_classification else "heuristic",
+            "clustering": settings.enable_story_clustering,
+        },
         "confidence_bands": {
             "High": "78-100",
             "Medium": "58-77",
@@ -345,6 +388,25 @@ def list_alert_preferences(user_id: int) -> list[dict[str, object]]:
     return [
         {
             "id": item.id,
+            "user_id": item.user_id,
+            "workspace_id": item.workspace_id,
+            "topic": item.topic,
+            "region": item.region,
+            "min_social_score": item.min_social_score,
+            "delivery_channel": item.delivery_channel,
+            "enabled": item.enabled,
+        }
+        for item in items
+    ]
+
+
+def list_all_alert_preferences() -> list[dict[str, object]]:
+    with session_scope() as session:
+        items = list(session.scalars(select(AlertPreferenceRecord).order_by(AlertPreferenceRecord.created_at.desc())))
+    return [
+        {
+            "id": item.id,
+            "user_id": item.user_id,
             "workspace_id": item.workspace_id,
             "topic": item.topic,
             "region": item.region,
@@ -363,6 +425,7 @@ def create_alert_preference(user_id: int, payload: dict[str, object]) -> dict[st
         session.flush()
         return {
             "id": item.id,
+            "user_id": item.user_id,
             "workspace_id": item.workspace_id,
             "topic": item.topic,
             "region": item.region,
@@ -371,6 +434,8 @@ def create_alert_preference(user_id: int, payload: dict[str, object]) -> dict[st
             "enabled": item.enabled,
         }
 
+
 def latest_story_timestamp() -> datetime | None:
     with session_scope() as session:
         return session.scalar(select(func.max(StoryRecord.published_at)))
+

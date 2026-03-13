@@ -4,6 +4,8 @@ from collections import Counter
 import re
 from typing import Any
 
+from .ml import predict_topics
+
 
 TOPIC_KEYWORDS = {
     "India": ["india", "indian", "delhi", "mumbai", "bengaluru", "bangalore", "chennai", "kolkata", "hyderabad", "pune"],
@@ -62,10 +64,22 @@ def _tokens(text: str) -> list[str]:
     return [match.group(0).lower() for match in TOKEN_RE.finditer(text)]
 
 
-def classify_topics(text: str) -> list[str]:
+def _heuristic_topics(text: str) -> list[str]:
     lower = text.lower()
     matches = [topic for topic, keywords in TOPIC_KEYWORDS.items() if any(keyword in lower for keyword in keywords)]
     return matches or ["General"]
+
+
+def classify_topics(text: str) -> list[str]:
+    ml_topics = predict_topics(text)
+    if ml_topics:
+        heuristic = _heuristic_topics(text)
+        merged: list[str] = []
+        for topic in [*ml_topics, *heuristic]:
+            if topic not in merged:
+                merged.append(topic)
+        return merged[:4]
+    return _heuristic_topics(text)
 
 
 def score_sentiment(text: str) -> str:

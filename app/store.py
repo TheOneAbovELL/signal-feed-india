@@ -3,15 +3,21 @@ from __future__ import annotations
 from collections import Counter, defaultdict
 from datetime import datetime, timedelta, timezone
 
+from .cache import cache
 from .classifier import extract_keywords
 from .config import settings
+from .intelligence import cluster_payload, cluster_stories, deduplicate_stories
 from .persistence import get_history, get_recent_stories, get_source_trust_report, social_model_definition
 from .models import Story
 
 
 class DashboardStore:
     async def snapshot(self) -> dict[str, object]:
-        stories = get_recent_stories(limit=settings.max_headlines)
+        cached = cache.get_json("snapshot:latest")
+        if cached is not None:
+            return cached
+
+        stories = deduplicate_stories(get_recent_stories(limit=settings.max_headlines * 2))[: settings.max_headlines]
 
         now = datetime.now(timezone.utc)
         topics = Counter(topic for story in stories for topic in story.topics)
@@ -23,8 +29,9 @@ class DashboardStore:
         timeline = self._timeline(stories, now)
         trending = extract_keywords([f"{story.title} {story.summary}" for story in stories[:80]], limit=18)
         social_leaders = sorted(stories, key=lambda story: (story.social_score, story.published_at), reverse=True)[:8]
+        clusters = cluster_stories(stories)
 
-        return {
+        payload = {
             "generated_at": now.isoformat(),
             "story_count": len(stories),
             "headlines": [story.to_dict() for story in stories[:30]],
@@ -45,7 +52,10 @@ class DashboardStore:
             },
             "source_trust": get_source_trust_report(),
             "social_model": social_model_definition(),
+            "clusters": cluster_payload(clusters),
         }
+        cache.set_json("snapshot:latest", payload)
+        return payload
 
     def _summary_cards(
         self,
