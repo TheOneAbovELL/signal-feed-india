@@ -3,3 +3,5 @@ uvicorn
 aiohttp
 feedparser
 websockets
+sqlalchemy
+pydantic[email]

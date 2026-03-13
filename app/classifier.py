@@ -2,11 +2,13 @@ from __future__ import annotations
 
 from collections import Counter
 import re
+from typing import Any
 
 
 TOPIC_KEYWORDS = {
     "India": ["india", "indian", "delhi", "mumbai", "bengaluru", "bangalore", "chennai", "kolkata", "hyderabad", "pune"],
     "Governance": ["parliament", "cabinet", "minister", "government", "bjp", "congress", "assembly", "lok sabha", "rajya sabha"],
+    "Politics": ["election", "prime minister", "president", "poll", "campaign", "cabinet", "policy"],
     "Startups": ["startup", "founder", "funding", "venture", "saas", "fintech", "unicorn", "incubator"],
     "Economy": ["market", "stock", "gdp", "inflation", "bank", "trade", "economy", "rupee", "sensex", "nifty"],
     "Climate": ["climate", "emission", "solar", "wind", "flood", "drought", "wildfire", "temperature", "monsoon"],
@@ -39,6 +41,20 @@ INDIA_REGIONS = {
     "Telangana": ["hyderabad", "telangana"],
     "Gujarat": ["gujarat", "ahmedabad"],
     "National": ["india", "parliament", "supreme court", "union budget"],
+}
+
+SOCIAL_KEYWORD_WEIGHTS = {
+    "breaking": 12,
+    "exclusive": 8,
+    "viral": 9,
+    "election": 7,
+    "budget": 6,
+    "ipl": 8,
+    "startup": 6,
+    "delhi": 4,
+    "mumbai": 4,
+    "war": 10,
+    "attack": 9,
 }
 
 
@@ -93,16 +109,49 @@ def detect_regions(text: str) -> list[str]:
     return regions or ["Global"]
 
 
-def estimate_social_score(text: str, source: str, topics: list[str]) -> int:
+def social_pulse(text: str, source_credibility: float, topics: list[str], regions: list[str]) -> dict[str, Any]:
     lower = text.lower()
-    score = 38 + min(len(text) // 10, 24)
-    if any(topic in {"India", "Governance", "Cricket", "Startups", "Economy"} for topic in topics):
-        score += 16
-    if any(word in lower for word in ("breaking", "viral", "budget", "ipl", "election", "startup", "delhi", "mumbai")):
-        score += 14
-    if source in {"The Hindu", "Indian Express", "NDTV", "Moneycontrol"}:
-        score += 10
-    return min(score, 100)
+    explanation: list[dict[str, str | int | float]] = []
+
+    score = 28
+    explanation.append({"factor": "base_activity", "weight": 28, "reason": "Base live-news visibility"})
+
+    keyword_bonus = sum(weight for keyword, weight in SOCIAL_KEYWORD_WEIGHTS.items() if keyword in lower)
+    if keyword_bonus:
+        score += min(keyword_bonus, 20)
+        explanation.append({"factor": "urgency_keywords", "weight": min(keyword_bonus, 20), "reason": "High-attention wording detected"})
+
+    topic_bonus = 0
+    if any(topic in {"India", "Governance", "Politics", "Economy", "Cricket", "Startups"} for topic in topics):
+        topic_bonus += 14
+    if any(topic in {"Geopolitics", "AI & Tech", "Sports"} for topic in topics):
+        topic_bonus += 8
+    if topic_bonus:
+        score += topic_bonus
+        explanation.append({"factor": "topic_relevance", "weight": topic_bonus, "reason": "Topic historically drives stronger sharing"})
+
+    regional_bonus = 6 if regions != ["Global"] else 3
+    score += regional_bonus
+    explanation.append({"factor": "regional_relevance", "weight": regional_bonus, "reason": "Regional context increases downstream sharing probability"})
+
+    trust_component = int(source_credibility * 22)
+    score += trust_component
+    explanation.append({"factor": "source_trust", "weight": trust_component, "reason": "High-trust sources improve confidence in sustained pickup"})
+
+    normalized = min(score, 100)
+    if normalized >= 78:
+        confidence = "High"
+    elif normalized >= 58:
+        confidence = "Medium"
+    else:
+        confidence = "Low"
+
+    return {
+        "score": normalized,
+        "confidence_band": confidence,
+        "explanation": explanation,
+        "model_version": "social-pulse-v2",
+    }
 
 
 def recommended_platforms(topics: list[str], regions: list[str]) -> list[str]:

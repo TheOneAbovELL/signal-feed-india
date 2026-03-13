@@ -1,36 +1,17 @@
 from __future__ import annotations
 
-import asyncio
 from collections import Counter, defaultdict
 from datetime import datetime, timedelta, timezone
 
 from .classifier import extract_keywords
 from .config import settings
+from .persistence import get_history, get_recent_stories, get_source_trust_report, social_model_definition
 from .models import Story
 
 
 class DashboardStore:
-    def __init__(self) -> None:
-        self._stories: list[Story] = []
-        self._seen_ids: set[str] = set()
-        self._lock = asyncio.Lock()
-
-    async def add_stories(self, stories: list[Story]) -> list[Story]:
-        added: list[Story] = []
-        async with self._lock:
-            for story in sorted(stories, key=lambda item: item.published_at, reverse=True):
-                if story.id in self._seen_ids:
-                    continue
-                self._seen_ids.add(story.id)
-                self._stories.insert(0, story)
-                added.append(story)
-            self._stories = sorted(self._stories, key=lambda item: item.published_at, reverse=True)[: settings.max_headlines]
-            self._seen_ids = {story.id for story in self._stories}
-        return added
-
     async def snapshot(self) -> dict[str, object]:
-        async with self._lock:
-            stories = list(self._stories)
+        stories = get_recent_stories(limit=settings.max_headlines)
 
         now = datetime.now(timezone.utc)
         topics = Counter(topic for story in stories for topic in story.topics)
@@ -57,6 +38,13 @@ class DashboardStore:
             "trending": trending,
             "timeline": timeline,
             "summary_cards": self._summary_cards(stories, topics, regions, hashtags),
+            "history": {
+                "1h": get_history("1h"),
+                "24h": get_history("24h"),
+                "7d": get_history("7d"),
+            },
+            "source_trust": get_source_trust_report(),
+            "social_model": social_model_definition(),
         }
 
     def _summary_cards(
