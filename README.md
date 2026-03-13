@@ -42,8 +42,6 @@ The platform is designed for fast scanning, trend discovery, segment switching, 
 
 ## Screenshots
 
-> Add these images to `docs/screenshots/` for the README to render perfectly on GitHub.
-
 ### Overview Dashboard
 
 ![Overview Dashboard](docs/screenshots/overview-dashboard.png)
@@ -176,19 +174,19 @@ Signal Feed India follows a lightweight real-time intelligence pipeline:
 ```text
 signal-feed-india/
 +-- app/
-¦   +-- __init__.py
-¦   +-- classifier.py        # Topic, sentiment, hashtag, and region logic
-¦   +-- config.py            # Feed configuration and dashboard settings
-¦   +-- feeds.py             # Async RSS ingestion and story creation
-¦   +-- main.py              # FastAPI app, routes, and websocket server
-¦   +-- models.py            # Story data model
-¦   +-- store.py             # In-memory dashboard store and snapshot builder
+Â¦   +-- __init__.py
+Â¦   +-- classifier.py        # Topic, sentiment, hashtag, and region logic
+Â¦   +-- config.py            # Feed configuration and dashboard settings
+Â¦   +-- feeds.py             # Async RSS ingestion and story creation
+Â¦   +-- main.py              # FastAPI app, routes, and websocket server
+Â¦   +-- models.py            # Story data model
+Â¦   +-- store.py             # In-memory dashboard store and snapshot builder
 +-- static/
-¦   +-- app.js               # Frontend dashboard logic
-¦   +-- index.html           # Main app UI
-¦   +-- styles.css           # Product styling
+Â¦   +-- app.js               # Frontend dashboard logic
+Â¦   +-- index.html           # Main app UI
+Â¦   +-- styles.css           # Product styling
 +-- docs/
-¦   +-- screenshots/         # README image assets
+Â¦   +-- screenshots/         # README image assets
 +-- requirements.txt
 +-- README.md
 +-- .gitignore
